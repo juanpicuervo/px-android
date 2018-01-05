@@ -125,10 +125,8 @@ public class ReviewAndConfirmActivity extends MercadoPagoBaseActivity implements
 //        mPresenter.initialize();
 
 
-        final ReviewContainer.Props props = new ReviewContainer.Props.Builder()
-                .setData(CheckoutStore.getInstance().getData()).build();
-
-        final PluginComponent component = paymentPlugin.createPaymentComponent(props);
+        final ReviewContainer.Props props = new ReviewContainer.Props();
+        final ReviewContainer reviewContainer = new ReviewContainer(props);
         final ComponentManager componentManager = new ComponentManager(this);
 
         if (component == null) {
