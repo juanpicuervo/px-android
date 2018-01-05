@@ -1,11 +1,9 @@
-package com.mercadopago.review.components;
+package com.mercadopago.reviewconfirm.components;
 
-import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 
 import com.mercadopago.R;
-import com.mercadopago.components.Component;
 import com.mercadopago.components.Renderer;
 
 /**

@@ -1,9 +1,6 @@
-package com.mercadopago.review.model;
+package com.mercadopago.reviewconfirm.model;
 
-import android.support.annotation.NonNull;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.auto.value.AutoValue;
 import com.mercadopago.model.Discount;
 import com.mercadopago.model.Issuer;
 import com.mercadopago.model.Item;
@@ -11,16 +8,13 @@ import com.mercadopago.model.PayerCost;
 import com.mercadopago.model.PaymentMethod;
 import com.mercadopago.model.Site;
 import com.mercadopago.model.Token;
-import com.mercadopago.util.JsonUtil;
 
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
 
 /**
  * Created by nfortuna on 1/3/18.
  */
-
 public class State {
 
     public final String publicKey;
@@ -38,8 +32,44 @@ public class State {
     public final String paymentMethodDescriptionInfo;
     public final List<Item> items;
 
+    public static class Builder {
 
-//    public State(@NonNull final Builder builder) {
+        public String publicKey;
+        public Site site;
+        public Issuer issuer;
+        public boolean termsAndConditionsEnabled;
+        public boolean editionEnabled;
+        public boolean discountEnabled;
+        public BigDecimal amount;
+        public Discount discount;
+        public PayerCost payerCost;
+        public Token token;
+        public PaymentMethod paymentMethod;
+        public String paymentMethodCommentInfo;
+        public String paymentMethodDescriptionInfo;
+        public List<Item> items;
+
+        Builder setPublicKey(final String value);
+
+        Builder setSite(final Site site);
+        Builder setIssuer(final Issuer issuer);
+        Builder setTermsAndConditionsEnabled(final boolean enabled);
+        Builder setEditionEnabled(final boolean enabled);
+        Builder setDiscountEnabled(final boolean enabled);
+        Builder setAmount(final BigDecimal amount);
+        Builder setDiscount(final Discount discount);
+        Builder setPayerCost(final PayerCost payerCost);
+        Builder setToken(final Token token);
+        Builder setPaymentMethod(final PaymentMethod paymentMethod);
+        Builder setPaymentMethodCommentInfo(final String paymentMethodCommentInfo);
+        Builder setPaymentMethodDescriptionInfo(final String paymentMethodDescriptionInfo);
+        Builder setItems(final List<Item> items);
+        State build();
+
+        
+    }
+
+    //    public State(@NonNull final Builder builder) {
 //
 //    }
 //

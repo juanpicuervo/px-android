@@ -1,4 +1,4 @@
-package com.mercadopago.review.components;
+package com.mercadopago.reviewconfirm.components;
 
 import android.support.annotation.NonNull;
 

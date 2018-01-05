@@ -1,4 +1,4 @@
-package com.mercadopago.review;
+package com.mercadopago.reviewconfirm;
 
 
 import com.google.gson.Gson;
@@ -50,10 +50,9 @@ import com.mercadopago.plugins.PluginComponent;
 import com.mercadopago.preferences.DecorationPreference;
 import com.mercadopago.preferences.ReviewScreenPreference;
 import com.mercadopago.presenters.ReviewAndConfirmPresenter;
-import com.mercadopago.review.components.ReviewContainer;
+import com.mercadopago.reviewconfirm.components.ReviewContainer;
 import com.mercadopago.tracker.FlowHandler;
 import com.mercadopago.tracker.MPTrackingContext;
-import com.mercadopago.providers.ReviewAndConfirmProviderImpl;
 import com.mercadopago.tracking.model.ActionEvent;
 import com.mercadopago.tracking.model.ScreenViewEvent;
 import com.mercadopago.tracking.utils.TrackingUtil;
