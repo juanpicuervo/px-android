@@ -1,13 +1,11 @@
 package com.mercadopago.reviewconfirm;
 
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.content.ContextCompat;
@@ -22,19 +20,21 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.mercadopago.BuildConfig;
 import com.mercadopago.MercadoPagoBaseActivity;
 import com.mercadopago.R;
 import com.mercadopago.TermsAndConditionsActivity;
 import com.mercadopago.adapters.ReviewablesAdapter;
+import com.mercadopago.components.Action;
+import com.mercadopago.components.ActionDispatcher;
 import com.mercadopago.components.ComponentManager;
 import com.mercadopago.constants.ReviewKeys;
 import com.mercadopago.constants.Sites;
 import com.mercadopago.controllers.CheckoutTimer;
-import com.mercadopago.core.CheckoutStore;
 import com.mercadopago.core.MercadoPagoCheckout;
 import com.mercadopago.customviews.MPTextView;
-
 import com.mercadopago.model.Discount;
 import com.mercadopago.model.Issuer;
 import com.mercadopago.model.Item;
@@ -46,7 +46,6 @@ import com.mercadopago.model.Reviewable;
 import com.mercadopago.model.Site;
 import com.mercadopago.model.Token;
 import com.mercadopago.observers.TimerObserver;
-import com.mercadopago.plugins.PluginComponent;
 import com.mercadopago.preferences.DecorationPreference;
 import com.mercadopago.preferences.ReviewScreenPreference;
 import com.mercadopago.presenters.ReviewAndConfirmPresenter;
@@ -66,7 +65,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReviewAndConfirmActivity extends MercadoPagoBaseActivity implements TimerObserver, ReviewAndConfirmView, ReviewSubscriber {
+public class ReviewAndConfirmActivity extends MercadoPagoBaseActivity implements ActionDispatcher, TimerObserver, ReviewAndConfirmView, ReviewSubscriber {
 
     public static final int RESULT_CHANGE_PAYMENT_METHOD = 3;
     public static final int RESULT_CANCEL_PAYMENT = 4;
@@ -125,8 +124,35 @@ public class ReviewAndConfirmActivity extends MercadoPagoBaseActivity implements
 //        mPresenter.initialize();
 
 
-        final ReviewContainer.Props props = new ReviewContainer.Props();
-        final ReviewContainer reviewContainer = new ReviewContainer(props);
+        List<Item> items;
+
+        try {
+            Gson gson = new Gson();
+            Type listType = new TypeToken<List<Item>>() {
+            }.getType();
+            items = gson.fromJson(this.getIntent().getStringExtra("items"), listType);
+        } catch (Exception ex) {
+            items = null;
+        }
+
+        final ReviewContainer.Props props = new ReviewContainer.Props.Builder()
+                .setPublicKey(getIntent().getStringExtra("merchantPublicKey"))
+                .setSite(JsonUtil.getInstance().fromJson(getIntent().getStringExtra("site"), Site.class))
+                .setIssuer(JsonUtil.getInstance().fromJson(getIntent().getStringExtra("issuer"), Issuer.class))
+                .setTermsAndConditionsEnabled(getIntent().getBooleanExtra("termsAndConditionsEnabled", true))
+                .setEditionEnabled(getIntent().getBooleanExtra("editionEnabled", true))
+                .setDiscountEnabled(getIntent().getBooleanExtra("discountEnabled", true))
+                .setAmount(new BigDecimal(getIntent().getStringExtra("amount")))
+                .setDiscount(JsonUtil.getInstance().fromJson(getIntent().getStringExtra("discount"), Discount.class))
+                .setPayerCost(JsonUtil.getInstance().fromJson(getIntent().getStringExtra("payerCost"), PayerCost.class))
+                .setToken(JsonUtil.getInstance().fromJson(getIntent().getStringExtra("token"), Token.class))
+                .setPaymentMethod(JsonUtil.getInstance().fromJson(getIntent().getStringExtra("paymentMethod"), PaymentMethod.class))
+                .setPaymentMethodCommentInfo(getIntent().getStringExtra("paymentMethodCommentInfo"))
+                .setPaymentMethodDescriptionInfo(getIntent().getStringExtra("paymentMethodDescriptionInfo"))
+                .setItems(items)
+                .build();
+
+        final ReviewContainer component = new ReviewContainer(props);
         final ComponentManager componentManager = new ComponentManager(this);
 
         if (component == null) {
@@ -180,58 +206,58 @@ public class ReviewAndConfirmActivity extends MercadoPagoBaseActivity implements
         });
     }
 
-    private void createPresenter() {
-        mPresenter = new ReviewAndConfirmPresenter();
-    }
+//    private void createPresenter() {
+//        mPresenter = new ReviewAndConfirmPresenter();
+//    }
 
-    private void getActivityParameters() {
-
-        mPublicKey = getIntent().getStringExtra("merchantPublicKey");
-        mSite = JsonUtil.getInstance().fromJson(getIntent().getStringExtra("site"), Site.class);
-        mIssuer = JsonUtil.getInstance().fromJson(getIntent().getStringExtra("issuer"), Issuer.class);
-
-        Boolean termsAndConditionsEnabled = getIntent().getBooleanExtra("termsAndConditionsEnabled", true);
-        Boolean editionEnabled = getIntent().getBooleanExtra("editionEnabled", true);
-        Boolean discountEnabled = getIntent().getBooleanExtra("discountEnabled", true);
-        BigDecimal amount = new BigDecimal(getIntent().getStringExtra("amount"));
-        Discount discount = JsonUtil.getInstance().fromJson(getIntent().getStringExtra("discount"), Discount.class);
-        PayerCost payerCost = JsonUtil.getInstance().fromJson(getIntent().getStringExtra("payerCost"), PayerCost.class);
-        Token token = JsonUtil.getInstance().fromJson(getIntent().getStringExtra("token"), Token.class);
-        PaymentMethod paymentMethod = JsonUtil.getInstance().fromJson(getIntent().getStringExtra("paymentMethod"), PaymentMethod.class);
-        String paymentMethodCommentInfo = getIntent().getStringExtra("paymentMethodCommentInfo");
-        String paymentMethodDescriptionInfo = getIntent().getStringExtra("paymentMethodDescriptionInfo");
-        List<Item> items;
-
-        try {
-            Gson gson = new Gson();
-            Type listType = new TypeToken<List<Item>>() {
-            }.getType();
-            items = gson.fromJson(this.getIntent().getStringExtra("items"), listType);
-        } catch (Exception ex) {
-            items = null;
-        }
-
-        mPresenter.setItems(items);
-        mPresenter.setAmount(amount);
-        mPresenter.setSite(mSite);
-        mPresenter.setIssuer(mIssuer);
-        mPresenter.setDiscount(discount);
-        mPresenter.setPayerCost(payerCost);
-        mPresenter.setToken(token);
-        mPresenter.setPaymentMethod(paymentMethod);
-        mPresenter.setPaymentMethodCommentInfo(paymentMethodCommentInfo);
-        mPresenter.setPaymentMethodDescriptionInfo(paymentMethodDescriptionInfo);
-        mPresenter.setEditionEnabled(editionEnabled);
-        mPresenter.setDecorationPreference(mDecorationPreference);
-        mPresenter.setTermsAndConditionsEnabled(termsAndConditionsEnabled);
-        mPresenter.setDiscountEnabled(discountEnabled);
-
-        if (mReviewScreenPreference == null || !mReviewScreenPreference.hasReviewOrder()) {
-            mPresenter.setReviewOrder(getDefaultOrder());
-        } else {
-            mPresenter.setReviewOrder(mReviewScreenPreference.getReviewOrder());
-        }
-    }
+//    private void getActivityParameters() {
+//
+//        mPublicKey = getIntent().getStringExtra("merchantPublicKey");
+//        mSite = JsonUtil.getInstance().fromJson(getIntent().getStringExtra("site"), Site.class);
+//        mIssuer = JsonUtil.getInstance().fromJson(getIntent().getStringExtra("issuer"), Issuer.class);
+//
+//        Boolean termsAndConditionsEnabled = getIntent().getBooleanExtra("termsAndConditionsEnabled", true);
+//        Boolean editionEnabled = getIntent().getBooleanExtra("editionEnabled", true);
+//        Boolean discountEnabled = getIntent().getBooleanExtra("discountEnabled", true);
+//        BigDecimal amount = new BigDecimal(getIntent().getStringExtra("amount"));
+//        Discount discount = JsonUtil.getInstance().fromJson(getIntent().getStringExtra("discount"), Discount.class);
+//        PayerCost payerCost = JsonUtil.getInstance().fromJson(getIntent().getStringExtra("payerCost"), PayerCost.class);
+//        Token token = JsonUtil.getInstance().fromJson(getIntent().getStringExtra("token"), Token.class);
+//        PaymentMethod paymentMethod = JsonUtil.getInstance().fromJson(getIntent().getStringExtra("paymentMethod"), PaymentMethod.class);
+//        String paymentMethodCommentInfo = getIntent().getStringExtra("paymentMethodCommentInfo");
+//        String paymentMethodDescriptionInfo = getIntent().getStringExtra("paymentMethodDescriptionInfo");
+//        List<Item> items;
+//
+//        try {
+//            Gson gson = new Gson();
+//            Type listType = new TypeToken<List<Item>>() {
+//            }.getType();
+//            items = gson.fromJson(this.getIntent().getStringExtra("items"), listType);
+//        } catch (Exception ex) {
+//            items = null;
+//        }
+//
+//        mPresenter.setItems(items);
+//        mPresenter.setAmount(amount);
+//        mPresenter.setSite(mSite);
+//        mPresenter.setIssuer(mIssuer);
+//        mPresenter.setDiscount(discount);
+//        mPresenter.setPayerCost(payerCost);
+//        mPresenter.setToken(token);
+//        mPresenter.setPaymentMethod(paymentMethod);
+//        mPresenter.setPaymentMethodCommentInfo(paymentMethodCommentInfo);
+//        mPresenter.setPaymentMethodDescriptionInfo(paymentMethodDescriptionInfo);
+//        mPresenter.setEditionEnabled(editionEnabled);
+//        mPresenter.setDecorationPreference(mDecorationPreference);
+//        mPresenter.setTermsAndConditionsEnabled(termsAndConditionsEnabled);
+//        mPresenter.setDiscountEnabled(discountEnabled);
+//
+//        if (mReviewScreenPreference == null || !mReviewScreenPreference.hasReviewOrder()) {
+//            mPresenter.setReviewOrder(getDefaultOrder());
+//        } else {
+//            mPresenter.setReviewOrder(mReviewScreenPreference.getReviewOrder());
+//        }
+//    }
 
     private void initializeControls() {
         mScrollView = (NestedScrollView) findViewById(R.id.mpsdkReviewScrollView);
@@ -314,6 +340,7 @@ public class ReviewAndConfirmActivity extends MercadoPagoBaseActivity implements
                 .build();
 
         PaymentData paymentData = mPresenter.getPaymentData();
+
         if (paymentData != null) {
 
             ScreenViewEvent.Builder builder = new ScreenViewEvent.Builder()
@@ -546,4 +573,8 @@ public class ReviewAndConfirmActivity extends MercadoPagoBaseActivity implements
         cancelPayment(resultCode, resultData, mPresenter.getPaymentData());
     }
 
+    @Override
+    public void dispatch(@NonNull final Action action) {
+
+    }
 }

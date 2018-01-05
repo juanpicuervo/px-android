@@ -10,7 +10,6 @@ import com.mercadopago.model.PayerCost;
 import com.mercadopago.model.PaymentMethod;
 import com.mercadopago.model.Site;
 import com.mercadopago.model.Token;
-import com.mercadopago.reviewconfirm.model.State;
 
 import java.math.BigDecimal;
 import java.util.List;
