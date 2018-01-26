@@ -83,9 +83,13 @@ public class BankDealsAdapter extends RecyclerView.Adapter<BankDealsAdapter.View
         }
 
         // Set bank image
-        Picasso.with(mActivity)
-                .load(getPicture(bankDeal))
-                .into(holder.mBankImageView);
+        if (bankDeal.getPicture() != null) {
+            Picasso.with(mActivity)
+                    .load(getPicture(bankDeal))
+                    .into(holder.mBankImageView);
+        } else {
+            holder.mBankImageView.setVisibility(View.GONE);
+        }
 
         // Set installments
         holder.mInstallmentsView.setText(Html.fromHtml(getRecommendedMessage(bankDeal)));
